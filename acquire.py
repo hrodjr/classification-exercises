@@ -1,19 +1,25 @@
 import pandas as pd
 import numpy as np
 import os
-from env import host, user, password
+from env
 
-###################### Acquire Titanic Data ######################
+###################### SQL connection ######################
 
-def get_connection(db, user=user, host=host, password=password):
-    '''
-    This function uses my info from my env file to
-    create a connection url to access the Codeup db.
-    It takes in a string name of a database as an argument.
-    '''
+def get_connection(db, user=env.user, host=env.host, password=env.password):
     return f'mysql+pymysql://{user}:{password}@{host}/{db}'
+
+###################### Acquire telco Data ######################
     
-    
+telco_sql = "select *\
+    FROM customers\
+        RIGHT JOIN contract_types USING(contract_type_id)\
+            RIGHT JOIN internet_service_types USING(internet_service_type_id)\
+                RIGHT JOIN payment_types USING(payment_type_id);"
+
+def get_telco_data():
+    return pd.read_sql(telco_sql,get_connection('telco_churn'))
+
+###################### Acquire Titanic Data ######################    
     
 def new_titanic_data():
     '''
