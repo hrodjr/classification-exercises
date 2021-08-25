@@ -1,3 +1,9 @@
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+
+
 def clean_data(df):
 
 #drop duplicates   
@@ -13,21 +19,57 @@ def clean_data(df):
     df = df.replace(to_replace = 'No phone service', value = 'No')
 
 #encode by creating a dummy df.
+#get_dummies creates a seperate df of booleans for the identified columns below. Cleaning for the decission tree.
     dummy_df = pd.get_dummies(df[['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies','paperless_billing','churn']], dummy_na=False, drop_first=[True, True])
-#drop and replace columns with dummy df. 
-    df = df.drop(columns=['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies','paperless_billing','churn'])
-    df = pd.concat([df, dummy_df], axis=1)
+#set 'drop_first' to 'False' to encode multiple types of the below listed columns.
+    dummy_df_types = pd.get_dummies(df[['payment_type','internet_service_type','contract_type',]], dummy_na=False, drop_first=False)
 
-return df
+#now drop the above two columns...
+    df = df.drop(columns=['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies','paperless_billing','churn'])
+#...and concatanate the dummies df with the prep's df.
+    df = pd.concat([df, dummy_df_types, dummy_df], axis=1)
+
+#rename columns
+    df = df.rename(columns={'payment_type_Bank transfer (automatic)':'bank_transfer','payment_type_Credit card (automatic)':'credit_card','payment_type_Electronic check':'e_check',
+    'payment_type_Mailed check':'check',
+    'internet_service_type_DSL':'dsl',
+    'internet_service_type_Fiber optic':'fiber',
+    'internet_service_type_None':'no_internet',
+    'contract_type_Month-to-month':'m2m',
+    'contract_type_One year':'one_year_contract',
+    'contract_type_Two year':'two_year_contract',
+    'dependents_Yes':'dependents',
+    'phone_service_Yes':'phone_service',
+    'online_security_Yes':'online_security',
+    'online_backup_Yes':'online_backup',
+    'gender_Male':'is_male',
+    'partner_Yes':'partner',
+    'multiple_lines_Yes':'multiple_lines',
+    'device_protection_Yes':'device_protection',
+    'tech_support_Yes':'tech_support',
+    'streaming_tv_Yes':'streaming_tv',
+    'streaming_movies_Yes':'streaming_movies',
+    'paperless_billing_Yes':'paperless',
+    'churn_Yes':'churned'})
+
+#convert 'churned' dtype to int for target
+    #df = df['churned'] = df['churned'].astype(int)
+    
+    return df
+
 
 ############################### Split Data ##################################
 
-def split_data(df):
+def train_validate_test_split(df, target, seed=123):
     '''
-    take in a DataFrame and return train, validate, and test DataFrames; stratify on survived.
-    return train, validate, test DataFrames.
+    This function takes in a dataframe, the name of the target variable
+    (for stratification purposes), and an integer for a setting a seed
+    and splits the data into train, validate and test. 
+    Test is 20% of the original dataset, validate is .30*.80= 24% of the 
+    original dataset, and train is .70*.80= 56% of the original dataset. 
+    The function returns, in this order, train, validate and test dataframes. 
     '''
-    train_validate, test = train_test_split(df, test_size=.2, random_state=123, stratify=df.survived)
-    train, validate = train_test_split(train_validate, test_size=.3, random_state=123, stratify=train_validate.survived)
     
-return train, validate, test
+    train_validate, test = train_test_split(df, test_size=0.2, random_state=seed, stratify=df[target])
+    train, validate = train_test_split(train_validate, test_size=0.3, random_state=seed, stratify=train_validate[target])
+    return train, validate, test
