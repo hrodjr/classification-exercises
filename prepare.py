@@ -11,7 +11,7 @@ def clean_data(df):
 #replaces empty values with 0
     df = df.replace({'total_charges': ' '}, 0)
 #drop redundant columns
-    df = df.drop(['payment_type_id', 'internet_service_type_id', 'contract_type_id', 'customer_id'], axis = 1)
+    df = df.drop(['payment_type_id', 'internet_service_type_id', 'contract_type_id', 'customer_id','senior_citizen','paperless_billing'], axis = 1)
 #change from object to float
     df['total_charges'] = df['total_charges'].astype(float)
 #Replaces 'no ... service' with 'No' for encoding.
@@ -20,12 +20,12 @@ def clean_data(df):
 
 #encode by creating a dummy df.
 #get_dummies creates a seperate df of booleans for the identified columns below. Cleaning for the decission tree.
-    dummy_df = pd.get_dummies(df[['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies','paperless_billing','churn']], dummy_na=False, drop_first=[True, True])
+    dummy_df = pd.get_dummies(df[['churn', 'gender', 'partner', 'dependents', 'phone_service', 'multiple_lines', 'online_security', 'online_backup', 'device_protection', 'tech_support', 'streaming_tv', 'streaming_movies']], dummy_na=False, drop_first=[True, True])
 #set 'drop_first' to 'False' to encode multiple types of the below listed columns.
     dummy_df_types = pd.get_dummies(df[['payment_type','internet_service_type','contract_type',]], dummy_na=False, drop_first=False)
 
 #now drop the above two columns...
-    df = df.drop(columns=['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies','paperless_billing','churn'])
+    df = df.drop(columns=['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies', 'churn'])
 #...and concatanate the dummies df with the prep's df.
     df = pd.concat([df, dummy_df_types, dummy_df], axis=1)
 
@@ -52,8 +52,12 @@ def clean_data(df):
     'paperless_billing_Yes':'paperless',
     'churn_Yes':'churned'})
 
-#convert 'churned' dtype to int for target
-    #df = df['churned'] = df['churned'].astype(int)
+#after encoding the decision to concatanate bank_transfer and credit_card into auto_payment was made to whether or not autopayments had a play on churn.    
+#combine 'bank_transfer' and 'credit_card' with new 'auto_payment' column
+    df['autopayment'] = df['bank_transfer'] + df['credit_card']
+    df['not_autopayment'] = df['e_check'] + df['check']
+#drop 'bank_transfer' and 'credit_card' columns
+    df = df.drop(columns=['bank_transfer', 'credit_card', 'e_check', 'check'])
     
     return df
 
