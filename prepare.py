@@ -20,17 +20,46 @@ def clean_data(df):
 
 #encode by creating a dummy df.
 #get_dummies creates a seperate df of booleans for the identified columns below. Cleaning for the decission tree.
-    dummy_df = pd.get_dummies(df[['churn', 'gender', 'partner', 'dependents', 'phone_service', 'multiple_lines', 'online_security', 'online_backup', 'device_protection', 'tech_support', 'streaming_tv', 'streaming_movies']], dummy_na=False, drop_first=[True, True])
+    dummy_df = pd.get_dummies(df[['churn',
+    'gender',
+    'partner',
+    'dependents',
+    'phone_service',
+    'multiple_lines',
+    'online_security',
+    'online_backup',
+    'device_protection',
+    'tech_support',
+    'streaming_tv',
+    'streaming_movies']], dummy_na=False, drop_first=[True, True])
+
 #set 'drop_first' to 'False' to encode multiple types of the below listed columns.
     dummy_df_types = pd.get_dummies(df[['payment_type','internet_service_type','contract_type',]], dummy_na=False, drop_first=False)
 
 #now drop the above two columns...
-    df = df.drop(columns=['dependents','phone_service','online_security','online_backup','payment_type','internet_service_type','contract_type','gender','partner','multiple_lines','device_protection','tech_support','streaming_tv','streaming_movies', 'churn'])
+    df = df.drop(columns=['dependents',
+    'phone_service',
+    'online_security',
+    'online_backup',
+    'payment_type',
+    'internet_service_type',
+    'contract_type',
+    'gender',
+    'partner',
+    'multiple_lines',
+    'device_protection',
+    'tech_support',
+    'streaming_tv',
+    'streaming_movies',
+    'churn'])
+
 #...and concatanate the dummies df with the prep's df.
     df = pd.concat([df, dummy_df_types, dummy_df], axis=1)
 
 #rename columns
-    df = df.rename(columns={'payment_type_Bank transfer (automatic)':'bank_transfer','payment_type_Credit card (automatic)':'credit_card','payment_type_Electronic check':'e_check',
+    df = df.rename(columns={'payment_type_Bank transfer (automatic)':'bank_transfer',
+    'payment_type_Credit card (automatic)':'credit_card',
+    'payment_type_Electronic check':'e_check',
     'payment_type_Mailed check':'check',
     'internet_service_type_DSL':'dsl',
     'internet_service_type_Fiber optic':'fiber',
@@ -56,9 +85,13 @@ def clean_data(df):
 #combine 'bank_transfer' and 'credit_card' with new 'auto_payment' column
     df['autopayment'] = df['bank_transfer'] + df['credit_card']
     df['not_autopayment'] = df['e_check'] + df['check']
+
 #drop 'bank_transfer' and 'credit_card' columns
     df = df.drop(columns=['bank_transfer', 'credit_card', 'e_check', 'check'])
-    
+
+#dropped the following columns after running univariate and bivariate statistics
+    df = df.drop(columns=['is_male', 'online_security', 'online_backup', 'device_protection', 'one_year_contract', 'two_year_contract', 'multiple_lines', 'total_charges'])
+
     return df
 
 
